@@ -1,8 +1,8 @@
 package com.example.finnub.utils
 
-sealed class LoadingState() {
+sealed class LoadingState(val error:String = "") {
     object LoadingSuccess: LoadingState()
-    object LoadingError: LoadingState()
+    class LoadingError(error: String): LoadingState(error = error)
     object LoadingStart: LoadingState()
     object LoadingInProcess: LoadingState()
     object LoadingNothing: LoadingState()

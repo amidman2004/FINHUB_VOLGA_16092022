@@ -19,6 +19,7 @@ import okhttp3.Request
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import retrofit2.Response
+import java.net.UnknownHostException
 import javax.inject.Inject
 
 class ApiRepositoryImpl @Inject
@@ -35,6 +36,7 @@ class ApiRepositoryImpl @Inject
         currency: String
     ): Flow<Resourse<List<StockSymbol>>>
     = flow {
+        emit(Resourse.Loading())
         try {
             val connect = api.getStocksList(exchange, mic, securityType, currency)
             if (connect.isSuccessful){
@@ -45,7 +47,10 @@ class ApiRepositoryImpl @Inject
                 emit(Resourse.Error(connect.code().toString()))
             }
         }catch (e:Exception){
-            emit(Resourse.Error(e.toString()))
+            if (e.toString().contains("UnknownHostException"))
+                emit(Resourse.Error("No Internet"))
+            else
+                emit(Resourse.Error(e.toString()))
         }
     }
 
@@ -71,7 +76,10 @@ class ApiRepositoryImpl @Inject
                 emit(Resourse.Error(connect.code().toString()))
             }
         }catch (e:Exception){
-            emit(Resourse.Error(e.toString()))
+            if (e.toString().contains("UnknownHostException"))
+                emit(Resourse.Error("No Internet"))
+            else
+                emit(Resourse.Error(e.toString()))
         }
     }
 
@@ -86,7 +94,7 @@ class ApiRepositoryImpl @Inject
 
     override fun closeWebSocket(){
         CoroutineScope(Dispatchers.IO).launch{
-            ws?.close(100,null)
+            ws?.let {webSocket ->  webSocket.close(1000,null) }
         }
     }
 

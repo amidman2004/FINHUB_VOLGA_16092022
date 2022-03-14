@@ -2,6 +2,7 @@ package com.example.finnub.data.api
 
 import com.example.finnub.data.api.models.SimpleStock
 import com.example.finnub.data.api.models.StockData
+import com.example.finnub.domain.extensionmethods.toSimpleStockList
 import com.google.gson.Gson
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +21,6 @@ class AmidWebSocketListener(
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
         CoroutineScope(Dispatchers.IO).launch{
-
                 stockList.value.forEach {simpleStock->
                     launch {
                         sendMessage(webSocket = webSocket, symbol = simpleStock.symbol)
@@ -30,11 +30,12 @@ class AmidWebSocketListener(
     }
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-        webSocket.close(100,null)
+        webSocket.close(1000,null)
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
-
+        val a = text
+        val b = 1
         CoroutineScope(Dispatchers.IO).launch{
             if (text == "{\"type\":\"ping\"}")
                 return@launch
@@ -45,34 +46,11 @@ class AmidWebSocketListener(
     }
 
     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-        webSocket.close(code,reason)
+
     }
 
     override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
         webSocket.close(code, reason)
-    }
-
-    private suspend fun String.toSimpleStockList(emitList: List<SimpleStock>):Deferred<List<SimpleStock>>
-     = CoroutineScope(Dispatchers.Default).async {
-
-        val simpleStockList = Gson().fromJson(this@toSimpleStockList,StockData::class.java)
-        val stockDataList = simpleStockList.data.distinctBy { data->
-            data.s
-        }
-
-        async {
-            stockDataList.forEach { data ->
-
-                launch {
-                    emitList.first { simpleStock: SimpleStock ->
-                        simpleStock.symbol == data.s
-                    }
-                        .price = data.p
-                }
-            }
-        }.await()
-
-        return@async emitList
     }
 
 

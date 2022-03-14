@@ -1,11 +1,14 @@
 package com.example.finnub.ui.screens.stocks_list_screen
 
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.finnub.data.api.models.SimpleStock
 import com.example.finnub.data.api.models.StockPrice
 import com.example.finnub.data.api.models.StockSymbol
 import com.example.finnub.domain.ApiRepository
+import com.example.finnub.domain.extensionmethods.toSubSimpleStockList
 import com.example.finnub.utils.LoadingState
 import com.example.finnub.utils.LoadingState.*
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,9 +29,12 @@ class StocksListViewModel @Inject
     private val _stocksListLoadingState:
             MutableStateFlow<LoadingState>
     = MutableStateFlow(LoadingStart)
-    val stocksListLoadingState = _stocksListLoadingState
+    val stocksListLoadingState = _stocksListLoadingState.asStateFlow()
 
-    private var currentPage = 1
+    private val pageSize = 8
+
+    private val _currentPage = mutableStateOf(1)
+    val currentPage: State<Int> = _currentPage
 
     private val _pageStocksList:MutableStateFlow<List<SimpleStock>> = MutableStateFlow(listOf())
     val pageStocksList:SharedFlow<List<SimpleStock>> = _pageStocksList
@@ -43,34 +49,35 @@ class StocksListViewModel @Inject
                     }
                     is LoadingInProcess -> {}
                     is LoadingNothing -> {}
-                    is LoadingSuccess -> {}
+                    is LoadingSuccess -> {
+                        onPageMoved()
+                    }
                     is LoadingError -> {}
                 }
             }
         }
     }
     fun nextPage(){
-        viewModelScope.launch {
-            currentPage++
-            val pageList = _stocksList.value
-                .subList(0*currentPage,20*currentPage)
-                .map { stockSymbol ->
-                    SimpleStock(stockSymbol.symbol)
-                }
-            _pageStocksList.emit(pageList)
-        }
+        if (_stocksList.value.size < _currentPage.value*_currentPage.value)
+            return
+        _currentPage.value++
+        onPageMoved()
     }
     fun prevPage(){
+        if (_currentPage.value == 1)
+            return
+        _currentPage.value--
+        onPageMoved()
+    }
+    private fun onPageMoved(){
         viewModelScope.launch {
-            if (currentPage == 1)
-                return@launch
-            currentPage++
-            val pageList = _stocksList.value
-                .subList(0*currentPage,20*currentPage)
-                .map { stockSymbol ->
-                    SimpleStock(stockSymbol.symbol)
-                }
+            val pageList = _stocksList.value.toSubSimpleStockList(
+                currentPage = _currentPage.value,
+                pageSize = pageSize
+            )
             _pageStocksList.emit(pageList)
+            apiRep.closeWebSocket()
+            apiRep.openWebSocket(_pageStocksList)
         }
     }
 
@@ -81,15 +88,18 @@ class StocksListViewModel @Inject
             apiRep.getStockList("US").collect { resource ->
                 when (resource) {
                     is Loading -> {
-
+                        _stocksListLoadingState.emit(LoadingInProcess)
                     }
                     is Error -> {
-                        _stocksListLoadingState.emit(LoadingError)
+                        resource.error?.let{ error ->
+                            _stocksListLoadingState.emit(LoadingError(error = error))
+                        }
                     }
                     is Success -> {
                         resource.response?.let {
                             _stocksList.emit(it)
                         }
+                        _stocksListLoadingState.emit(LoadingSuccess)
                     }
                 }
             }
