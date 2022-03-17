@@ -6,10 +6,10 @@ import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-fun collectFlows(lifecycle: Lifecycle,lifecycleCoroutineScope: LifecycleCoroutineScope,
+fun collectFlows(lifecycle: Lifecycle, lifecycleScope: LifecycleCoroutineScope,
                  onCollect: suspend CoroutineScope.() -> Unit){
-    lifecycleCoroutineScope.launch {
-        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED){
+    lifecycleScope.launch {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED){
             onCollect()
         }
     }

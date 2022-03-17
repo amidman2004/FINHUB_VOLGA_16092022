@@ -1,13 +1,5 @@
 package com.example.finnub.ui.screens.stocks_list_screen
 
-import android.annotation.SuppressLint
-import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.material.*
@@ -15,27 +7,18 @@ import androidx.compose.runtime.*
 import androidx.navigation.NavController
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
 import com.example.finnub.data.api.models.SimpleStock
-import com.example.finnub.data.api.models.StockPrice
-import com.example.finnub.data.api.models.StockSymbol
+import com.example.finnub.domain.extensionmethods.toSimpleStockList
 import com.example.finnub.utils.LoadingState
 import com.example.finnub.utils.collectFlows
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
-import java.time.DayOfWeek
-import java.util.*
+import kotlinx.coroutines.flow.onEach
 
 @Composable
 fun StocksListScreen(
@@ -54,7 +37,31 @@ fun StocksListScreen(
 @Composable
 fun StocksList(vm: StocksListViewModel) {
 
-    val stockList by vm.pageStocksList.collectAsState(listOf())
+
+    var stockList:List<SimpleStock> by remember {
+        mutableStateOf(listOf())
+    }
+
+
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycle = lifecycleOwner.lifecycle
+    val lifecycleScope = lifecycleOwner.lifecycleScope
+
+    collectFlows(lifecycle = lifecycle, lifecycleScope = lifecycleScope){
+        vm.pageStocksList.onEach {
+            stockList = it
+        }.collect()
+
+    }
+
+
+    val page by remember {
+        vm.currentPage
+    }
+
+
+
 
     val state = rememberLazyListState()
 
@@ -78,8 +85,9 @@ fun StocksList(vm: StocksListViewModel) {
                     }
                 }
             else
-                itemsIndexed(stockList){index: Int, simpleStock: SimpleStock ->
-                    StockListItem(simpleStock)
+                itemsIndexed(stockList){ index: Int, simpleStock: SimpleStock ->
+                    StockListItem(simpleStock,vm,page)
+
                 }
         }
 
@@ -102,8 +110,26 @@ suspend fun ScrollToStart(state: LazyListState){
 
 @Composable
 fun StockListItem(
-    simpleStock: SimpleStock
+    simpleStock: SimpleStock,
+    vm: StocksListViewModel,
+    page:Int
     ) {
+    var stockPrice by remember(simpleStock) {
+        mutableStateOf(simpleStock.price)
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    LaunchedEffect(key1 = page, block = {
+        stockPrice = 0.00
+        while (stockPrice == 0.00){
+            val sPrice = vm.getStockPrice(symbol = simpleStock.symbol)
+            stockPrice = sPrice
+            delay(11000)
+        }
+
+    })
+
     Box(
         Modifier
             .fillMaxWidth()
@@ -112,7 +138,7 @@ fun StockListItem(
             modifier = Modifier
                 .padding(start = 30.dp)
                 .align(Alignment.CenterStart))
-        if (simpleStock.price == 0.00)
+        if (stockPrice == 0.00)
             CircularProgressIndicator(
                 color = Color.Blue,
                 modifier = Modifier
@@ -120,7 +146,7 @@ fun StockListItem(
                     .align(Alignment.CenterEnd),
             )
         else
-            Text(text = simpleStock.price.toString(),
+            Text(text = stockPrice.toString(),
                 modifier = Modifier
                     .padding(end = 30.dp)
                     .align(Alignment.CenterEnd)

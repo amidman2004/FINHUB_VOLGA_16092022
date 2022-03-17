@@ -1,13 +1,16 @@
 package com.example.finnub.ui.screens.stocks_list_screen
 
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.finnub.data.api.models.SimpleStock
+import com.example.finnub.data.api.models.StockData
 import com.example.finnub.data.api.models.StockPrice
 import com.example.finnub.data.api.models.StockSymbol
 import com.example.finnub.domain.ApiRepository
+import com.example.finnub.domain.extensionmethods.toSimpleStockList
 import com.example.finnub.domain.extensionmethods.toSubSimpleStockList
 import com.example.finnub.utils.LoadingState
 import com.example.finnub.utils.LoadingState.*
@@ -15,6 +18,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.finnub.utils.Resourse.*
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.*
 
 @HiltViewModel
@@ -31,13 +35,13 @@ class StocksListViewModel @Inject
     = MutableStateFlow(LoadingStart)
     val stocksListLoadingState = _stocksListLoadingState.asStateFlow()
 
-    private val pageSize = 8
+    private val pageSize = 6
 
     private val _currentPage = mutableStateOf(1)
     val currentPage: State<Int> = _currentPage
 
     private val _pageStocksList:MutableStateFlow<List<SimpleStock>> = MutableStateFlow(listOf())
-    val pageStocksList:SharedFlow<List<SimpleStock>> = _pageStocksList
+    val pageStocksList:StateFlow<List<SimpleStock>> = _pageStocksList.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -75,9 +79,12 @@ class StocksListViewModel @Inject
                 currentPage = _currentPage.value,
                 pageSize = pageSize
             )
+            //val pageList = listOf(SimpleStock("BINANCE:BTCUSDT"))
             _pageStocksList.emit(pageList)
             apiRep.closeWebSocket()
             apiRep.openWebSocket(_pageStocksList)
+
+
         }
     }
 
@@ -106,19 +113,8 @@ class StocksListViewModel @Inject
         }
     }
 
-    suspend fun getStockPrice(symbol: String): StateFlow<StockPrice?> = flow {
-        apiRep.pollingGetStockPrice(symbol).collect { resource ->
-            when (resource) {
-                is Loading -> {
-
-                }
-                is Error -> {
-
-                }
-                is Success -> {
-                    emit(resource.response)
-                }
-            }
-        }
-    }.stateIn(viewModelScope,)
+    suspend fun getStockPrice(symbol: String): Double{
+        val response = apiRep.getStockPrice(symbol)
+        return response
+    }
 }

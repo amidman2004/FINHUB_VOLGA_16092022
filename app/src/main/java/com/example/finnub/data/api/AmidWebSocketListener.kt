@@ -6,10 +6,10 @@ import com.example.finnub.domain.extensionmethods.toSimpleStockList
 import com.google.gson.Gson
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
-
 class AmidWebSocketListener(
     private val stockList:MutableStateFlow<List<SimpleStock>>
 ) :WebSocketListener(){
@@ -34,13 +34,10 @@ class AmidWebSocketListener(
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
-        val a = text
-        val b = 1
         CoroutineScope(Dispatchers.IO).launch{
             if (text == "{\"type\":\"ping\"}")
                 return@launch
-
-            val emitList = text.toSimpleStockList(stockList.value).await()
+            val emitList = text.toSimpleStockList(stockList.value)
             stockList.emit(emitList)
         }
     }

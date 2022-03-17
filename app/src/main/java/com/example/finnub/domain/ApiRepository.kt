@@ -17,9 +17,7 @@ interface ApiRepository {
         currency:String = "",
     ):Flow<Resourse<List<StockSymbol>>>
 
-    suspend fun pollingGetStockPrice(
-        symbol: String
-    ):Flow<Resourse<StockPrice>>
+    suspend fun getStockPrice(symbol: String):Double
 
     fun openWebSocket(stockList: MutableStateFlow<List<SimpleStock>>)
 

@@ -5,6 +5,7 @@ import com.example.finnub.data.api.models.SimpleStock
 import com.example.finnub.data.api.models.StockPrice
 import com.example.finnub.data.api.models.StockSymbol
 import com.example.finnub.domain.ApiRepository
+import com.example.finnub.utils.LoadingState
 import com.example.finnub.utils.Resourse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -54,42 +55,29 @@ class ApiRepositoryImpl @Inject
         }
     }
 
-    override suspend fun pollingGetStockPrice(symbol: String): Flow<Resourse<StockPrice>>
-    = flow {
-        emit(Resourse.Loading())
-        this.getStockPrice(symbol)
-        while (true){
-            delay(30000)
-            this.getStockPrice(symbol)
+
+    override suspend fun getStockPrice(symbol: String):Double{
+        try {
+            val connect = api.getStockPrice(symbol = symbol)
+            if (connect.isSuccessful)
+                return connect.body()?.c?:0.00
+            else
+                return 0.00
+        }catch (e:Exception){
+            return 0.00
         }
     }
 
-    private suspend fun FlowCollector<Resourse<StockPrice>>.getStockPrice(symbol: String,){
-        try {
-            emit(Resourse.Loading())
-            val connect = api.getStockPrice(symbol = symbol)
-            if (connect.isSuccessful){
-                connect.body()?.let { stockPrice: StockPrice ->
-                    emit(Resourse.Success(response = stockPrice))
-                }
-            }else{
-                emit(Resourse.Error(connect.code().toString()))
-            }
-        }catch (e:Exception){
-            if (e.toString().contains("UnknownHostException"))
-                emit(Resourse.Error("No Internet"))
-            else
-                emit(Resourse.Error(e.toString()))
-        }
-    }
+
 
     override fun openWebSocket(stockList:MutableStateFlow<List<SimpleStock>>){
         val request = Request.Builder()
             .url(WEB_SOCKET_URL)
             .build()
         val listener = AmidWebSocketListener(stockList = stockList)
+        val client = OkHttpClient()
+        ws = client.newWebSocket(request,listener)
 
-        ws = OkHttpClient().newWebSocket(request,listener)
     }
 
     override fun closeWebSocket(){
