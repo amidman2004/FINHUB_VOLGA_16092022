@@ -5,6 +5,7 @@ import com.example.finnub.data.api.models.StockData
 import com.google.gson.Gson
 import kotlinx.coroutines.*
 
+
 fun String.toSimpleStockList(emitList: List<SimpleStock>): List<SimpleStock> {
 
     val simpleStockList = Gson().fromJson(this@toSimpleStockList, StockData::class.java)
@@ -13,7 +14,7 @@ fun String.toSimpleStockList(emitList: List<SimpleStock>): List<SimpleStock> {
     }
 
         stockDataList.forEach { data ->
-             emitList.first { simpleStock: SimpleStock ->
+             emitList.last { simpleStock: SimpleStock ->
                  simpleStock.symbol == data.s
              }
                  .price = data.p

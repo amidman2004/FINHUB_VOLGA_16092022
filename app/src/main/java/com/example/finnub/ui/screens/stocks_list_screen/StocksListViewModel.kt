@@ -3,6 +3,8 @@ package com.example.finnub.ui.screens.stocks_list_screen
 import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.finnub.data.api.models.SimpleStock
@@ -35,13 +37,14 @@ class StocksListViewModel @Inject
     = MutableStateFlow(LoadingStart)
     val stocksListLoadingState = _stocksListLoadingState.asStateFlow()
 
-    private val pageSize = 6
+    private val pageSize = 8
 
     private val _currentPage = mutableStateOf(1)
     val currentPage: State<Int> = _currentPage
 
-    private val _pageStocksList:MutableStateFlow<List<SimpleStock>> = MutableStateFlow(listOf())
-    val pageStocksList:StateFlow<List<SimpleStock>> = _pageStocksList.asStateFlow()
+    private val _pageStocksList:MutableLiveData<List<SimpleStock>> = MutableLiveData(listOf())
+    val pageStocksList:LiveData<List<SimpleStock>> = _pageStocksList
+
 
     init {
         viewModelScope.launch {
@@ -79,8 +82,12 @@ class StocksListViewModel @Inject
                 currentPage = _currentPage.value,
                 pageSize = pageSize
             )
-            //val pageList = listOf(SimpleStock("BINANCE:BTCUSDT"))
-            _pageStocksList.emit(pageList)
+//            Most trend stocks for test WebSocket
+//            val pageList = listOf(
+//                SimpleStock("AAPL"),
+//                SimpleStock("AMZN"),
+//                SimpleStock("MSFT"))
+            _pageStocksList.postValue(pageList)
             apiRep.closeWebSocket()
             apiRep.openWebSocket(_pageStocksList)
 

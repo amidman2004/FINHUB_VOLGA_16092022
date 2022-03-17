@@ -48,11 +48,8 @@ fun StocksList(vm: StocksListViewModel) {
     val lifecycle = lifecycleOwner.lifecycle
     val lifecycleScope = lifecycleOwner.lifecycleScope
 
-    collectFlows(lifecycle = lifecycle, lifecycleScope = lifecycleScope){
-        vm.pageStocksList.onEach {
-            stockList = it
-        }.collect()
-
+    vm.pageStocksList.observe(lifecycleOwner){
+        stockList = it
     }
 
 
@@ -86,8 +83,7 @@ fun StocksList(vm: StocksListViewModel) {
                 }
             else
                 itemsIndexed(stockList){ index: Int, simpleStock: SimpleStock ->
-                    StockListItem(simpleStock,vm,page)
-
+                    StockListItem(simpleStock,vm,page, index = index)
                 }
         }
 
@@ -112,22 +108,28 @@ suspend fun ScrollToStart(state: LazyListState){
 fun StockListItem(
     simpleStock: SimpleStock,
     vm: StocksListViewModel,
-    page:Int
+    page:Int,
+    index:Int
     ) {
     var stockPrice by remember(simpleStock) {
         mutableStateOf(simpleStock.price)
     }
-
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    LaunchedEffect(key1 = page, block = {
+    vm.pageStocksList.observe(lifecycleOwner){
+        val indexPrice = it[index].price
+        if (indexPrice != 0.00)
+        stockPrice = it[index].price
+    }
+
+
+    LaunchedEffect(key1 = simpleStock.symbol, block = {
         stockPrice = 0.00
         while (stockPrice == 0.00){
             val sPrice = vm.getStockPrice(symbol = simpleStock.symbol)
             stockPrice = sPrice
             delay(11000)
         }
-
     })
 
     Box(
@@ -146,7 +148,7 @@ fun StockListItem(
                     .align(Alignment.CenterEnd),
             )
         else
-            Text(text = stockPrice.toString(),
+            Text(text = "$stockPrice $",
                 modifier = Modifier
                     .padding(end = 30.dp)
                     .align(Alignment.CenterEnd)

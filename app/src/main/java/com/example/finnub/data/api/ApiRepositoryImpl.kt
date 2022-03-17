@@ -1,5 +1,6 @@
 package com.example.finnub.data.api
 
+import androidx.lifecycle.MutableLiveData
 import com.example.finnub.data.api.ApiURLs.WEB_SOCKET_URL
 import com.example.finnub.data.api.models.SimpleStock
 import com.example.finnub.data.api.models.StockPrice
@@ -70,7 +71,7 @@ class ApiRepositoryImpl @Inject
 
 
 
-    override fun openWebSocket(stockList:MutableStateFlow<List<SimpleStock>>){
+    override fun openWebSocket(stockList:MutableLiveData<List<SimpleStock>>){
         val request = Request.Builder()
             .url(WEB_SOCKET_URL)
             .build()
