@@ -1,5 +1,6 @@
 package com.example.finnub.domain
 
+import androidx.lifecycle.MutableLiveData
 import com.example.finnub.data.api.models.SimpleStock
 import com.example.finnub.data.api.models.StockPrice
 import com.example.finnub.data.api.models.StockSymbol
@@ -17,11 +18,9 @@ interface ApiRepository {
         currency:String = "",
     ):Flow<Resourse<List<StockSymbol>>>
 
-    suspend fun pollingGetStockPrice(
-        symbol: String
-    ):Flow<Resourse<StockPrice>>
+    suspend fun getStockPrice(symbol: String):Double
 
-    fun openWebSocket(stockList: MutableStateFlow<List<SimpleStock>>)
+    fun openWebSocket(stockList: MutableLiveData<List<SimpleStock>>)
 
     fun closeWebSocket()
 }

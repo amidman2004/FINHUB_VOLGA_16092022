@@ -5,8 +5,9 @@ import com.example.finnub.data.api.models.StockData
 import com.google.gson.Gson
 import kotlinx.coroutines.*
 
-suspend fun String.toSimpleStockList(emitList: List<SimpleStock>): Deferred<List<SimpleStock>>
-        = CoroutineScope(Dispatchers.Default).async {
+
+suspend fun String.toSimpleStockList(emitList: List<SimpleStock>): List<SimpleStock>
+ = CoroutineScope(Dispatchers.IO).async{
 
     val simpleStockList = Gson().fromJson(this@toSimpleStockList, StockData::class.java)
     val stockDataList = simpleStockList.data.distinctBy { data->
@@ -15,15 +16,15 @@ suspend fun String.toSimpleStockList(emitList: List<SimpleStock>): Deferred<List
 
     async {
         stockDataList.forEach { data ->
-
             launch {
-                    emitList.first { simpleStock: SimpleStock ->
-                        simpleStock.symbol == data.s
-                    }
-                        .price = data.p
+                emitList.find { simpleStock: SimpleStock ->
+                    simpleStock.symbol == data.s
+                }
+                    ?.price = data.p
             }
         }
     }.await()
 
+
     return@async emitList
-}
+}.await()
