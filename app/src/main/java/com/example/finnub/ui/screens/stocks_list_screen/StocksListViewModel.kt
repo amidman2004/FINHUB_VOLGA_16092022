@@ -78,15 +78,16 @@ class StocksListViewModel @Inject
     }
     private fun onPageMoved(){
         viewModelScope.launch {
-            val pageList = _stocksList.value.toSubSimpleStockList(
+            var pageList = _stocksList.value.toSubSimpleStockList(
                 currentPage = _currentPage.value,
                 pageSize = pageSize
             )
-//            Most trend stocks for test WebSocket
-//            val pageList = listOf(
+//            Most trend stocks for test WebSocket, uncomment code for test
+//            pageList = listOf(
 //                SimpleStock("AAPL"),
 //                SimpleStock("AMZN"),
-//                SimpleStock("MSFT"))
+//                SimpleStock("MSFT"),
+//                SimpleStock("BINANCE:BTCUSDT"))
             _pageStocksList.postValue(pageList)
             apiRep.closeWebSocket()
             apiRep.openWebSocket(_pageStocksList)

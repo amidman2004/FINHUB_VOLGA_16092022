@@ -83,7 +83,10 @@ fun StocksList(vm: StocksListViewModel) {
                 }
             else
                 itemsIndexed(stockList){ index: Int, simpleStock: SimpleStock ->
-                    StockListItem(simpleStock,vm,page, index = index)
+                    StockListItem(
+                        simpleStock = simpleStock,
+                        vm = vm,
+                        index = index)
                 }
         }
 
@@ -108,12 +111,13 @@ suspend fun ScrollToStart(state: LazyListState){
 fun StockListItem(
     simpleStock: SimpleStock,
     vm: StocksListViewModel,
-    page:Int,
     index:Int
     ) {
-    var stockPrice by remember(simpleStock) {
+
+    var stockPrice by remember {
         mutableStateOf(simpleStock.price)
     }
+
     val lifecycleOwner = LocalLifecycleOwner.current
 
     vm.pageStocksList.observe(lifecycleOwner){

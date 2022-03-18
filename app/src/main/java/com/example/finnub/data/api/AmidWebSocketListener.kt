@@ -36,12 +36,15 @@ class AmidWebSocketListener(
 
     override fun onMessage(webSocket: WebSocket, text: String) {
 
-        if (text == "{\"type\":\"ping\"}")
-            return
-        stockList.value?.let { list ->
-            val emitList = text.toSimpleStockList(list)
-            stockList.postValue(emitList)
+        CoroutineScope(Dispatchers.IO).launch {
+            if (text == "{\"type\":\"ping\"}")
+                return@launch
+            stockList.value?.let { list ->
+                val emitList = text.toSimpleStockList(list)
+                stockList.postValue(emitList)
+            }
         }
+
     }
 
     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {

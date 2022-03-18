@@ -6,19 +6,25 @@ import com.google.gson.Gson
 import kotlinx.coroutines.*
 
 
-fun String.toSimpleStockList(emitList: List<SimpleStock>): List<SimpleStock> {
+suspend fun String.toSimpleStockList(emitList: List<SimpleStock>): List<SimpleStock>
+ = CoroutineScope(Dispatchers.IO).async{
 
     val simpleStockList = Gson().fromJson(this@toSimpleStockList, StockData::class.java)
     val stockDataList = simpleStockList.data.distinctBy { data->
         data.s
     }
 
+    async {
         stockDataList.forEach { data ->
-             emitList.last { simpleStock: SimpleStock ->
-                 simpleStock.symbol == data.s
-             }
-                 .price = data.p
+            launch {
+                emitList.find { simpleStock: SimpleStock ->
+                    simpleStock.symbol == data.s
+                }
+                    ?.price = data.p
+            }
         }
+    }.await()
 
-    return emitList
-}
+
+    return@async emitList
+}.await()
