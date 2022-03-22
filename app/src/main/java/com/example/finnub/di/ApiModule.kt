@@ -2,7 +2,8 @@ package com.example.finnub.di
 
 import com.example.finnub.data.api.ApiRepositoryImpl
 import com.example.finnub.data.api.ApiRequests
-import com.example.finnub.data.api.ApiURLs.BASE_URL
+import com.example.finnub.data.api.ApiConstants.BASE_URL
+import com.example.finnub.data.api.ApiConstants.TOKEN
 import com.example.finnub.domain.ApiRepository
 import dagger.Module
 import dagger.Provides
@@ -41,7 +42,7 @@ class ApiModule {
             .addInterceptor{interceptor->
                 val requets = interceptor.request()
                     .newBuilder()
-                    .header("X-Finnhub-Token","c8krd0aad3ibbdm42ma0")
+                    .header("X-Finnhub-Token", TOKEN)
                     .build()
                 interceptor.proceed(requets)
             }

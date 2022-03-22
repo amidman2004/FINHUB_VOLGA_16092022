@@ -5,9 +5,9 @@
     <application
         android:name=".app.FinnubApp"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/finnhub_logo"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/finnhub_logo"
         android:supportsRtl="true"
         android:theme="@style/Theme.Finnub">
         <activity
