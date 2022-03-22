@@ -2,6 +2,6 @@
 <resources>
 
     <style name="Theme.Finnub" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:statusBarColor">@color/purple_700</item>
+        <item name="android:statusBarColor">#FF199645</item>
     </style>
 </resources>

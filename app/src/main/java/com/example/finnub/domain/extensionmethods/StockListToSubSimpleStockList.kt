@@ -8,9 +8,14 @@ fun List<StockSymbol>.toSubSimpleStockList(
     pageSize:Int
 ):List<SimpleStock>{
     val stockSymbolList = this
-    return stockSymbolList
-        .subList((currentPage-1)*pageSize,pageSize*currentPage)
-        .map { stockSymbol ->
-            SimpleStock(stockSymbol.symbol)
-        }
+    try {
+        return stockSymbolList
+            .subList((currentPage-1)*pageSize,pageSize*currentPage)
+            .map { stockSymbol ->
+                SimpleStock(stockSymbol.symbol)
+            }
+    }catch (e:Exception){
+        return emptyList()
+    }
+
 }

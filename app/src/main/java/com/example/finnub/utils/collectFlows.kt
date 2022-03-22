@@ -1,15 +1,13 @@
 package com.example.finnub.utils
 
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleCoroutineScope
-import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-fun collectFlows(lifecycle: Lifecycle, lifecycleScope: LifecycleCoroutineScope,
+fun collectFlows(lifecycleOwner: LifecycleOwner,
                  onCollect: suspend CoroutineScope.() -> Unit){
-    lifecycleScope.launch {
-        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED){
+    lifecycleOwner.lifecycleScope.launch {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED){
             onCollect()
         }
     }

@@ -54,12 +54,11 @@ class StocksListViewModel @Inject
                         _stocksList.emit(listOf())
                         downloadStocksList()
                     }
-                    is LoadingInProcess -> {}
-                    is LoadingNothing -> {}
                     is LoadingSuccess -> {
                         onPageMoved()
                     }
-                    is LoadingError -> {}
+
+                    else -> {}
                 }
             }
         }
@@ -70,12 +69,20 @@ class StocksListViewModel @Inject
         _currentPage.value++
         onPageMoved()
     }
+
     fun prevPage(){
         if (_currentPage.value == 1)
             return
         _currentPage.value--
         onPageMoved()
     }
+
+    fun Refresh(){
+        viewModelScope.launch {
+            _stocksListLoadingState.emit(LoadingStart)
+        }
+    }
+
     private fun onPageMoved(){
         viewModelScope.launch {
             var pageList = _stocksList.value.toSubSimpleStockList(

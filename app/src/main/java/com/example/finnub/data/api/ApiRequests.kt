@@ -1,7 +1,7 @@
 package com.example.finnub.data.api
 
-import com.example.finnub.data.api.ApiURLs.STOCKS_LIST_URL
-import com.example.finnub.data.api.ApiURLs.STOCK_PRICE_URL
+import com.example.finnub.data.api.ApiConstants.STOCKS_LIST_URL
+import com.example.finnub.data.api.ApiConstants.STOCK_PRICE_URL
 import com.example.finnub.data.api.models.StockPrice
 import com.example.finnub.data.api.models.StockSymbol
 import retrofit2.Response
