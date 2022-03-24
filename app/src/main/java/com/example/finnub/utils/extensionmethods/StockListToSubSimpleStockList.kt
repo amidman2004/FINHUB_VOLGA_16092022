@@ -1,9 +1,9 @@
-package com.example.finnub.domain.extensionmethods
+package com.example.finnub.utils.extensionmethods
 
 import com.example.finnub.data.api.models.SimpleStock
 import com.example.finnub.data.api.models.StockSymbol
 
-fun List<StockSymbol>.toSubSimpleStockList(
+fun List<SimpleStock>.toSubSimpleStockList(
     currentPage:Int,
     pageSize:Int
 ):List<SimpleStock>{
@@ -11,9 +11,6 @@ fun List<StockSymbol>.toSubSimpleStockList(
     try {
         return stockSymbolList
             .subList((currentPage-1)*pageSize,pageSize*currentPage)
-            .map { stockSymbol ->
-                SimpleStock(stockSymbol.symbol)
-            }
     }catch (e:Exception){
         return emptyList()
     }

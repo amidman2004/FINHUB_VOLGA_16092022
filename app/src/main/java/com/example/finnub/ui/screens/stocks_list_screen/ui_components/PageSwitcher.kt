@@ -58,3 +58,7 @@ fun PageSwitcher(
         }
     }
 }
+
+suspend fun ScrollToStart(state: LazyListState){
+    state.animateScrollToItem(0)
+}

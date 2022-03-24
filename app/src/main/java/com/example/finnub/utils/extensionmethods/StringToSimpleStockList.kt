@@ -1,4 +1,4 @@
-package com.example.finnub.domain.extensionmethods
+package com.example.finnub.utils.extensionmethods
 
 import com.example.finnub.data.api.models.SimpleStock
 import com.example.finnub.data.api.models.StockData
@@ -24,7 +24,6 @@ suspend fun String.toSimpleStockList(emitList: List<SimpleStock>): List<SimpleSt
             }
         }
     }.await()
-
 
     return@async emitList
 }.await()
