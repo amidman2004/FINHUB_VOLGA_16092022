@@ -1,9 +1,10 @@
 package com.example.finnub.data.api
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.example.finnub.data.api.models.SimpleStock
 import com.example.finnub.data.api.models.StockData
-import com.example.finnub.domain.extensionmethods.toSimpleStockList
+import com.example.finnub.utils.extensionmethods.toSimpleStockList
 import com.google.gson.Gson
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +14,7 @@ import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 class AmidWebSocketListener(
     private val stockList:MutableLiveData<List<SimpleStock>>
-) :WebSocketListener(){
+):WebSocketListener(){
 
     private suspend fun sendMessage(webSocket: WebSocket,symbol:String){
         val message = "{\"type\":\"subscribe\",\"symbol\":\"$symbol\"}"
@@ -31,7 +32,7 @@ class AmidWebSocketListener(
     }
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-        webSocket.close(1000,null)
+
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
@@ -52,7 +53,7 @@ class AmidWebSocketListener(
     }
 
     override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
-        webSocket.close(code, reason)
+
     }
 
 

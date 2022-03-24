@@ -28,17 +28,24 @@ class ApiRepositoryImpl @Inject
         mic: String,
         securityType: String,
         currency: String
-    ): Flow<Resourse<List<StockSymbol>>>
+    ): Flow<Resourse<List<SimpleStock>>>
     = flow {
         emit(Resourse.Loading())
         try {
             val connect = api.getStocksList(exchange, mic, securityType, currency)
             if (connect.isSuccessful){
                 connect.body()?.let { stocksList ->
-                    emit(Resourse.Success(response = stocksList))
+                    val simpleStockList = stocksList.map { stockSymbol ->
+                        SimpleStock(stockSymbol.symbol)
+                    }
+                    emit(Resourse.Success(response = simpleStockList))
                 }
             }else{
-                emit(Resourse.Error(connect.code().toString()))
+                if (connect.code() == 429)
+                    emit(Resourse.Error("\n Too Many Requests, please wait 10-30 seconds and restart"))
+                else
+                    emit(Resourse.Error("\n " +
+                            "code ${connect.code()} ${connect.message()}"))
             }
         }catch (e:Exception){
             emit(Resourse.Error("\n Check your Internet connection and retry download"))
@@ -67,12 +74,11 @@ class ApiRepositoryImpl @Inject
         val listener = AmidWebSocketListener(stockList = stockList)
         val client = OkHttpClient()
         ws = client.newWebSocket(request,listener)
+
     }
 
     override fun closeWebSocket(){
-        CoroutineScope(Dispatchers.IO).launch{
-            ws?.let {webSocket ->  webSocket.close(1000,null) }
-        }
+        ws?.let { webSocket ->  webSocket.cancel() }
     }
 
 }

@@ -16,7 +16,7 @@ interface ApiRepository {
         mic:String = "",
         securityType:String = "",
         currency:String = "",
-    ):Flow<Resourse<List<StockSymbol>>>
+    ):Flow<Resourse<List<SimpleStock>>>
 
     suspend fun getStockPrice(symbol: String):Double
 

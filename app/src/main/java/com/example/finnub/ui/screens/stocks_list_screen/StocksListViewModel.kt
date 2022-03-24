@@ -1,6 +1,5 @@
 package com.example.finnub.ui.screens.stocks_list_screen
 
-import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
@@ -8,19 +7,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.finnub.data.api.models.SimpleStock
-import com.example.finnub.data.api.models.StockData
-import com.example.finnub.data.api.models.StockPrice
-import com.example.finnub.data.api.models.StockSymbol
 import com.example.finnub.domain.ApiRepository
-import com.example.finnub.domain.extensionmethods.toSimpleStockList
-import com.example.finnub.domain.extensionmethods.toSubSimpleStockList
+import com.example.finnub.utils.extensionmethods.savePage
+import com.example.finnub.utils.extensionmethods.toSubSimpleStockList
 import com.example.finnub.utils.LoadingState
 import com.example.finnub.utils.LoadingState.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.finnub.utils.Resourse.*
-import com.google.gson.Gson
 import kotlinx.coroutines.flow.*
 
 @HiltViewModel
@@ -29,8 +24,8 @@ class StocksListViewModel @Inject
         private val apiRep:ApiRepository
     ):ViewModel() {
 
-    private val _stocksList: MutableStateFlow<List<StockSymbol>> = MutableStateFlow(listOf())
-    val stockList: StateFlow<List<StockSymbol>> = _stocksList.asStateFlow()
+    private val _stocksList: MutableStateFlow<List<SimpleStock>> = MutableStateFlow(listOf())
+    val stockList: StateFlow<List<SimpleStock>> = _stocksList.asStateFlow()
 
     private val _stocksListLoadingState:
             MutableStateFlow<LoadingState>
@@ -44,6 +39,7 @@ class StocksListViewModel @Inject
 
     private val _pageStocksList:MutableLiveData<List<SimpleStock>> = MutableLiveData(listOf())
     val pageStocksList:LiveData<List<SimpleStock>> = _pageStocksList
+
 
 
     init {
@@ -66,6 +62,7 @@ class StocksListViewModel @Inject
     fun nextPage(){
         if (_stocksList.value.size < _currentPage.value*_currentPage.value)
             return
+        savePage()
         _currentPage.value++
         onPageMoved()
     }
@@ -73,6 +70,7 @@ class StocksListViewModel @Inject
     fun prevPage(){
         if (_currentPage.value == 1)
             return
+        savePage()
         _currentPage.value--
         onPageMoved()
     }
@@ -80,6 +78,16 @@ class StocksListViewModel @Inject
     fun Refresh(){
         viewModelScope.launch {
             _stocksListLoadingState.emit(LoadingStart)
+        }
+
+    }
+
+    private fun savePage(){
+        viewModelScope.launch {
+            _stocksList.savePage(
+                page = _pageStocksList.value?: listOf(),
+                currentPage = currentPage.value
+            )
         }
     }
 
@@ -98,8 +106,6 @@ class StocksListViewModel @Inject
             _pageStocksList.postValue(pageList)
             apiRep.closeWebSocket()
             apiRep.openWebSocket(_pageStocksList)
-
-
         }
     }
 
@@ -130,6 +136,7 @@ class StocksListViewModel @Inject
 
     suspend fun getStockPrice(symbol: String): Double{
         val response = apiRep.getStockPrice(symbol)
+        _pageStocksList.value?.find {simpleStock -> simpleStock.symbol == symbol  }?.price = response
         return response
     }
 }
