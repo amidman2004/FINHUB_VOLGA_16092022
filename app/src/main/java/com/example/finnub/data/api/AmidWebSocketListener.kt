@@ -14,7 +14,7 @@ import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 class AmidWebSocketListener(
     private val stockList:MutableLiveData<List<SimpleStock>>
-):WebSocketListener(){
+):WebSocketListener() {
 
     private suspend fun sendMessage(webSocket: WebSocket,symbol:String){
         val message = "{\"type\":\"subscribe\",\"symbol\":\"$symbol\"}"

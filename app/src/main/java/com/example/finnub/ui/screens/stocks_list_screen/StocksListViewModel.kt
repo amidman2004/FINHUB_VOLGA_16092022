@@ -8,6 +8,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.finnub.data.api.models.SimpleStock
 import com.example.finnub.domain.ApiRepository
+import com.example.finnub.domain.SaveStockRepository
+import com.example.finnub.domain.SearchRepository
+import com.example.finnub.utils.Constants
 import com.example.finnub.utils.extensionmethods.savePage
 import com.example.finnub.utils.extensionmethods.toSubSimpleStockList
 import com.example.finnub.utils.LoadingState
@@ -21,11 +24,16 @@ import kotlinx.coroutines.flow.*
 @HiltViewModel
 class StocksListViewModel @Inject
     constructor(
-        private val apiRep:ApiRepository
+        private val apiRep:ApiRepository,
+        private val searchRepository: SearchRepository,
+        private val saveStockRepository: SaveStockRepository,
     ):ViewModel() {
 
     private val _stocksList: MutableStateFlow<List<SimpleStock>> = MutableStateFlow(listOf())
     val stockList: StateFlow<List<SimpleStock>> = _stocksList.asStateFlow()
+
+    private val _currentExchange = MutableStateFlow("US")
+    val currentExchange = _currentExchange.asStateFlow()
 
     private val _stocksListLoadingState:
             MutableStateFlow<LoadingState>
@@ -40,6 +48,8 @@ class StocksListViewModel @Inject
     private val _pageStocksList:MutableLiveData<List<SimpleStock>> = MutableLiveData(listOf())
     val pageStocksList:LiveData<List<SimpleStock>> = _pageStocksList
 
+    private val _searchValue = MutableStateFlow("")
+    val searchValue = _searchValue.asStateFlow()
 
 
     init {
@@ -48,7 +58,11 @@ class StocksListViewModel @Inject
                 when(state){
                     is LoadingStart -> {
                         _stocksList.emit(listOf())
-                        downloadStocksList()
+                        val searchValue = _searchValue.value.trim()
+                        if (searchValue.isEmpty())
+                            downloadStocksList()
+                        else
+                            searchStocks()
                     }
                     is LoadingSuccess -> {
                         onPageMoved()
@@ -60,11 +74,16 @@ class StocksListViewModel @Inject
         }
     }
     fun nextPage(){
-        if (_stocksList.value.size < _currentPage.value*_currentPage.value)
+        val currentFullList = stockList.value.size
+        val currentPage = currentPage.value + 1
+        if (currentFullList < currentPage * pageSize)
             return
-        savePage()
-        _currentPage.value++
-        onPageMoved()
+        else{
+            savePage()
+            _currentPage.value++
+            onPageMoved()
+        }
+
     }
 
     fun prevPage(){
@@ -75,7 +94,7 @@ class StocksListViewModel @Inject
         onPageMoved()
     }
 
-    fun Refresh(){
+    fun refresh(){
         viewModelScope.launch {
             _stocksListLoadingState.emit(LoadingStart)
         }
@@ -84,8 +103,9 @@ class StocksListViewModel @Inject
 
     private fun savePage(){
         viewModelScope.launch {
+            val currentPageListValue = pageStocksList.value
             _stocksList.savePage(
-                page = _pageStocksList.value?: listOf(),
+                page = currentPageListValue?: listOf(),
                 currentPage = currentPage.value
             )
         }
@@ -93,7 +113,8 @@ class StocksListViewModel @Inject
 
     private fun onPageMoved(){
         viewModelScope.launch {
-            var pageList = _stocksList.value.toSubSimpleStockList(
+            val currentValue = stockList.value
+            var pageList = currentValue.toSubSimpleStockList(
                 currentPage = _currentPage.value,
                 pageSize = pageSize
             )
@@ -113,7 +134,8 @@ class StocksListViewModel @Inject
 
     private fun downloadStocksList() {
         viewModelScope.launch {
-            apiRep.getStockList("US").collect { resource ->
+            val currentExchange = currentExchange.value
+            apiRep.getStockList(currentExchange).collect { resource ->
                 when (resource) {
                     is Loading -> {
                         _stocksListLoadingState.emit(LoadingInProcess)
@@ -134,9 +156,68 @@ class StocksListViewModel @Inject
         }
     }
 
+    fun searchStocks(){
+
+        val stockName = searchValue.value.trim()
+        if (stockName.isEmpty())
+            return
+        viewModelScope.launch {
+            searchRepository.searchStocks(stockName).collect{ resource ->
+                when(resource){
+                    is Loading -> {
+                        _stocksListLoadingState.emit(LoadingInProcess)
+                    }
+
+                    is Error -> {
+                        resource.error?.let{ error ->
+                            _stocksListLoadingState.emit(LoadingError(error = error))
+                        }
+                    }
+
+                    is Success -> {
+                        resource.response?.let {
+                            _stocksList.emit(it)
+                        }
+                        _stocksListLoadingState.emit(LoadingSuccess)
+                    }
+                }
+            }
+        }
+
+    }
+
     suspend fun getStockPrice(symbol: String): Double{
         val response = apiRep.getStockPrice(symbol)
         _pageStocksList.value?.find {simpleStock -> simpleStock.symbol == symbol  }?.price = response
         return response
+    }
+
+    fun changeSearchValue(value: String) {
+        viewModelScope.launch {
+            _searchValue.emit(value)
+        }
+    }
+
+
+
+    fun changeCurrentExchange(value: String){
+        if (!Constants.EXCHANGES.contains(value))
+            return
+        viewModelScope.launch {
+            _currentExchange.emit(value)
+            downloadStocksList()
+        }
+    }
+
+    fun saveStock(stock: SimpleStock){
+        viewModelScope.launch {
+            saveStockRepository.addStock(stock)
+        }
+    }
+
+    fun getStockList(){
+        viewModelScope.launch {
+            val savedList = saveStockRepository.getStockList()
+        }
     }
 }

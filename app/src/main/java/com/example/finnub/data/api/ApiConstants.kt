@@ -7,6 +7,9 @@ object ApiConstants {
 
     const val STOCKS_LIST_URL = "stock/symbol"
     const val STOCK_PRICE_URL = "quote"
+    const val SEARCH_REQUEST = "search"
 
     const val WEB_SOCKET_URL = "wss://ws.finnhub.io?token=$TOKEN"
+
+
 }

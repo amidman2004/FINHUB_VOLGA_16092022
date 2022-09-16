@@ -7,6 +7,7 @@ import com.example.finnub.data.api.models.StockSymbol
 import com.example.finnub.utils.Resourse
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import retrofit2.Response
 import retrofit2.http.Query
 
 interface ApiRepository {
@@ -19,6 +20,8 @@ interface ApiRepository {
     ):Flow<Resourse<List<SimpleStock>>>
 
     suspend fun getStockPrice(symbol: String):Double
+
+
 
     fun openWebSocket(stockList: MutableLiveData<List<SimpleStock>>)
 

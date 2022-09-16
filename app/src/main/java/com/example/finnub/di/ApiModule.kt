@@ -4,7 +4,9 @@ import com.example.finnub.data.api.ApiRepositoryImpl
 import com.example.finnub.data.api.ApiRequests
 import com.example.finnub.data.api.ApiConstants.BASE_URL
 import com.example.finnub.data.api.ApiConstants.TOKEN
+import com.example.finnub.data.api.SearchRepositoryImpl
 import com.example.finnub.domain.ApiRepository
+import com.example.finnub.domain.SearchRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,6 +24,12 @@ class ApiModule {
     @Singleton
     fun provideApiRepository(apiRequests: ApiRequests):ApiRepository{
         return ApiRepositoryImpl(api = apiRequests)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSearchRepository(apiRequests: ApiRequests):SearchRepository{
+        return SearchRepositoryImpl(api = apiRequests)
     }
 
     @Provides

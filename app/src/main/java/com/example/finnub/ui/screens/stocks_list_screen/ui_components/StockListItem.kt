@@ -34,9 +34,13 @@ fun StockListItem(
     val lifecycleOwner = LocalLifecycleOwner.current
 
     vm.pageStocksList.observe(lifecycleOwner){
-        val indexPrice = it[index].price
-        if (indexPrice != 0.00)
-            stockPrice = it[index].price
+        try{
+            val indexPrice = it[index].price
+            if (indexPrice != 0.00)
+                stockPrice = it[index].price
+        }catch (e:Exception){
+            return@observe
+        }
     }
 
     LaunchedEffect(key1 = simpleStock.symbol, block = {
@@ -54,7 +58,9 @@ fun StockListItem(
             .height(100.dp)
             .padding(5.dp)
             .clip(RoundedCornerShape(10))
-            .border(1.dp, finnhubDarkBlue, RoundedCornerShape(10))) {
+            .border(1.dp, finnhubDarkBlue, RoundedCornerShape(10))
+
+    ) {
         Text(text = simpleStock.symbol,
             modifier = Modifier
                 .padding(start = 30.dp)

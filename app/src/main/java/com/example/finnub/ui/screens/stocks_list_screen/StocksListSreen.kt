@@ -24,6 +24,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.finnub.data.api.models.SimpleStock
+import com.example.finnub.domain.SearchRepository
+import com.example.finnub.ui.screens.stocks_list_screen.ui_components.FinnhubTopAppBar
+import com.example.finnub.ui.screens.stocks_list_screen.ui_components.SearchTab
 import com.example.finnub.utils.extensionmethods.toSimpleStockList
 import com.example.finnub.ui.screens.stocks_list_screen.ui_components.StocksList
 import com.example.finnub.ui.theme.finnhubDarkBlue
@@ -46,20 +49,19 @@ fun StocksListScreen(
     val loadingState by vm.stocksListLoadingState.collectAsState()
 
     Scaffold(topBar = {
-        Column() {
-            TopAppBar(
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            FinnhubTopAppBar(
+                vm = vm
+            )
+
+            SearchTab(
+                vm = vm,
                 modifier = Modifier
-                    .fillMaxWidth(),
-                backgroundColor = finnhubGreen,
-            ) {
-                Text(
-                    text = "US STOCKS",
-                    color = Color.White,
-                    fontSize = 24.sp,
-                    modifier = Modifier
-                        .padding(start = 40.dp)
-                        .align(CenterVertically))
-            }
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp)
+            )
             ErrorLabel(error = loadingState.error,loadingState is LoadingState.LoadingError)
         }
     }) {

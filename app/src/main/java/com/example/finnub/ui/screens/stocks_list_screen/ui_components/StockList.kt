@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,7 +48,7 @@ fun StocksList(vm: StocksListViewModel) {
         SwipeRefresh(
             state = refreshState,
             refreshTriggerDistance = 160.dp,
-            onRefresh = {vm.Refresh()},
+            onRefresh = {vm.refresh()},
             indicator = { state, refreshDist ->
                 SwipeRefreshIndicator(
                     state = state,
@@ -72,13 +73,29 @@ fun StocksList(vm: StocksListViewModel) {
                             )
                         }
                     }
-                else
-                    itemsIndexed(stockList){ index: Int, simpleStock: SimpleStock ->
-                        StockListItem(
-                            simpleStock = simpleStock,
-                            vm = vm,
-                            index = index)
+                else{
+                    if (stockList.isEmpty()){
+                        item { 
+                            Box(modifier = Modifier.fillMaxSize()){
+                                Text(
+                                    text = "Котировки не найдены",
+                                    modifier = Modifier.align(
+                                        Alignment.Center
+                                    )
+                                )
+                            }
+                        }
+                    }else{
+                        itemsIndexed(stockList){ index: Int, simpleStock: SimpleStock ->
+                            StockListItem(
+                                simpleStock = simpleStock,
+                                vm = vm,
+                                index = index)
+                        }
                     }
+                    
+                }
+                    
             }
         }
 
