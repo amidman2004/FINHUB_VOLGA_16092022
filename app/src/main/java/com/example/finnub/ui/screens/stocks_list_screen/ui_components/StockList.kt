@@ -62,9 +62,7 @@ fun StocksList(vm: StocksListViewModel) {
             }
         ) {
             Column() {
-                Text(text = "Избранное")
                 ListOfSavedStock(vm = vm)
-                Text(text = "Котировки Биржи")
                 LazyColumn(state = state, modifier = Modifier
                     .fillMaxSize()
                     .padding(bottom = 80.dp)
@@ -94,6 +92,9 @@ fun StocksList(vm: StocksListViewModel) {
                                 }
                             }
                         }else{
+                            item {
+                                Text(text = "Котировки Биржи")
+                            }
                             itemsIndexed(stockList){ index: Int, simpleStock: SimpleStock ->
                                 StockListItem(
                                     simpleStock = simpleStock,

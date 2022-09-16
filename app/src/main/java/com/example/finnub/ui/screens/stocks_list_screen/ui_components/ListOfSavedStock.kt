@@ -31,19 +31,21 @@ fun ListOfSavedStock(
         stockList = it
     }
 
-    if (stockList.isNotEmpty())
-    LazyColumn(
-        modifier = Modifier.height(220.dp)
-    ){
-
-        itemsIndexed(stockList){index,item ->
-            StockListItem(
-                simpleStock = item,
-                vm = vm,
-                index = index,
-                stockList = vm.pageStocksList
-            )
+    if (stockList.isNotEmpty()){
+        Text(text = "Избранное")
+        LazyColumn(
+            modifier = Modifier.height(220.dp)
+        ){
+            itemsIndexed(stockList){index,item ->
+                StockListItem(
+                    simpleStock = item,
+                    vm = vm,
+                    index = index,
+                    stockList = vm.pageStocksList
+                )
+            }
         }
     }
+
     
 }

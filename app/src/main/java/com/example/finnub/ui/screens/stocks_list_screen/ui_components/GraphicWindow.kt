@@ -28,6 +28,8 @@ import com.example.finnub.utils.collectFlow
 import com.patrykandpatryk.vico.compose.axis.axisLabelComponent
 import com.patrykandpatryk.vico.compose.axis.horizontal.bottomAxis
 import com.patrykandpatryk.vico.compose.axis.horizontal.topAxis
+import com.patrykandpatryk.vico.compose.axis.vertical.endAxis
+import com.patrykandpatryk.vico.compose.axis.vertical.startAxis
 import com.patrykandpatryk.vico.core.component.text.TextComponent
 import com.patrykandpatryk.vico.core.legend.Legend
 import com.patrykandpatryk.vico.core.marker.Marker
@@ -120,7 +122,8 @@ fun GraphicWindowDialog(
                             model = model,
                             isHorizontalScrollEnabled = true,
                             bottomAxis = bottomAxis(label = axisLabelComponent()),
-
+                            startAxis = startAxis(),
+                            endAxis = endAxis()
                         )
                     }else{
                         Box(modifier = Modifier.size(400.dp,300.dp)){
