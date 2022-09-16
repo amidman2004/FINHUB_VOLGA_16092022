@@ -1,5 +1,6 @@
 package com.example.finnub.ui.screens.stocks_list_screen
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -26,12 +27,14 @@ import androidx.navigation.compose.rememberNavController
 import com.example.finnub.data.api.models.SimpleStock
 import com.example.finnub.domain.SearchRepository
 import com.example.finnub.ui.screens.stocks_list_screen.ui_components.FinnhubTopAppBar
+import com.example.finnub.ui.screens.stocks_list_screen.ui_components.GraphicWindowDialog
 import com.example.finnub.ui.screens.stocks_list_screen.ui_components.SearchTab
 import com.example.finnub.utils.extensionmethods.toSimpleStockList
 import com.example.finnub.ui.screens.stocks_list_screen.ui_components.StocksList
 import com.example.finnub.ui.theme.finnhubDarkBlue
 import com.example.finnub.ui.theme.finnhubGreen
 import com.example.finnub.utils.LoadingState
+import com.example.finnub.utils.collectFlow
 import com.example.finnub.utils.collectFlows
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
@@ -40,6 +43,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 
+@SuppressLint("FlowOperatorInvokedInComposition")
 @Composable
 fun StocksListScreen(
     mainNav:NavController,
@@ -47,6 +51,22 @@ fun StocksListScreen(
 ) {
 
     val loadingState by vm.stocksListLoadingState.collectAsState()
+
+    var currentSimpleStock:SimpleStock? by remember {
+        mutableStateOf(null)
+    }
+
+    var isDialogEnabled by remember {
+        mutableStateOf(false)
+    }
+
+    vm.currentStock.onEach {
+        currentSimpleStock = it
+    }.collectFlow()
+
+    vm.isDialogEnabled.onEach {
+        isDialogEnabled = it
+    }.collectFlow()
 
     Scaffold(topBar = {
         Column(
@@ -65,10 +85,17 @@ fun StocksListScreen(
             ErrorLabel(error = loadingState.error,loadingState is LoadingState.LoadingError)
         }
     }) {
-
         StocksList(vm = vm)
-
     }
+
+    GraphicWindowDialog(
+        isEnabled = isDialogEnabled,
+        simpleStock = currentSimpleStock,
+        vm = vm,
+        onDismiss = {
+            vm.setDialogValue(false)
+        }
+    )
 }
 
 

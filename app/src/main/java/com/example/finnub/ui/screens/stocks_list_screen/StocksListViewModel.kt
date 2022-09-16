@@ -51,12 +51,25 @@ class StocksListViewModel @Inject
     private val _searchValue = MutableStateFlow("")
     val searchValue = _searchValue.asStateFlow()
 
+    private val _isDialogEnabled = MutableStateFlow(false)
+    val isDialogEnabled = _isDialogEnabled.asStateFlow()
+
+    private val _currentStock = MutableStateFlow<SimpleStock?>(null)
+    val currentStock = _currentStock.asStateFlow()
+
+    private val _savedStocks = MutableLiveData<List<SimpleStock>>(listOf())
+    val savedStocks:LiveData<List<SimpleStock>> = _savedStocks
+
+    private val _currentCandle = MutableStateFlow(listOf<Double>())
+    val currentCandle = _currentCandle.asStateFlow()
+
 
     init {
         viewModelScope.launch {
             _stocksListLoadingState.collect{ state->
                 when(state){
                     is LoadingStart -> {
+                        getStockList()
                         _stocksList.emit(listOf())
                         val searchValue = _searchValue.value.trim()
                         if (searchValue.isEmpty())
@@ -94,6 +107,12 @@ class StocksListViewModel @Inject
         onPageMoved()
     }
 
+    fun toFirstPage(){
+        savePage()
+        _currentPage.value = 1
+        onPageMoved()
+    }
+
     fun refresh(){
         viewModelScope.launch {
             _stocksListLoadingState.emit(LoadingStart)
@@ -125,8 +144,9 @@ class StocksListViewModel @Inject
 //                SimpleStock("MSFT"),
 //                SimpleStock("BINANCE:BTCUSDT"))
             _pageStocksList.postValue(pageList)
+
             apiRep.closeWebSocket()
-            apiRep.openWebSocket(_pageStocksList)
+            apiRep.openWebSocket(_pageStocksList,_savedStocks)
         }
     }
 
@@ -150,6 +170,7 @@ class StocksListViewModel @Inject
                             _stocksList.emit(it)
                         }
                         _stocksListLoadingState.emit(LoadingSuccess)
+                        toFirstPage()
                     }
                 }
             }
@@ -179,6 +200,7 @@ class StocksListViewModel @Inject
                             _stocksList.emit(it)
                         }
                         _stocksListLoadingState.emit(LoadingSuccess)
+                        toFirstPage()
                     }
                 }
             }
@@ -209,15 +231,60 @@ class StocksListViewModel @Inject
         }
     }
 
+    fun setDialogValue(dialogValue:Boolean,currentSimpleStock: SimpleStock? = null){
+        viewModelScope.launch {
+            _isDialogEnabled.emit(dialogValue)
+            _currentStock.emit(currentSimpleStock)
+        }
+    }
+
     fun saveStock(stock: SimpleStock){
         viewModelScope.launch {
             saveStockRepository.addStock(stock)
+            getStockList()
+        }
+    }
+
+    fun getStockCandle(
+        resolution:String,
+        timeValue:Int
+    ){
+        val symbol = currentStock.value?.symbol ?: "AAPL"
+        viewModelScope.launch {
+            apiRep.getStockCandle(
+                symbol = symbol,
+                resolution = resolution,
+                timeValue
+            ).collect{ resource ->
+                when(resource){
+                    is Loading -> {
+                        _stocksListLoadingState.emit(LoadingInProcess)
+                    }
+
+                    is Error -> {
+                        resource.error?.let{ error ->
+                            _stocksListLoadingState.emit(LoadingError(error = error))
+                        }
+                    }
+
+                    is Success -> {
+                        resource.response?.let {
+                            if (it.s == "no_data")
+                                _currentCandle.emit(listOf())
+                            else
+                                _currentCandle.emit(it.c)
+                        }
+                        _stocksListLoadingState.emit(LoadingSuccess)
+                    }
+                }
+            }
         }
     }
 
     fun getStockList(){
         viewModelScope.launch {
             val savedList = saveStockRepository.getStockList()
+            _savedStocks.postValue(savedList)
         }
     }
 }

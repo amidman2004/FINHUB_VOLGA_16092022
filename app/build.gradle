@@ -100,6 +100,10 @@ dependencies {
     androidTestImplementation 'com.google.dagger:hilt-android-testing:2.40.5'
     kaptAndroidTest 'com.google.dagger:hilt-android-compiler:2.40.5'
 
+
+    //for stock graphics
+    implementation "com.patrykandpatryk.vico:compose:1.4.3"
+    
     //SwipeRefresh
     implementation "com.google.accompanist:accompanist-swiperefresh:0.24.4-alpha"
 

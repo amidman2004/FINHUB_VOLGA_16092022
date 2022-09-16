@@ -29,6 +29,7 @@ fun SearchTab(
     modifier: Modifier = Modifier
 ) {
 
+    val cancelPainter = painterResource(id = R.drawable.ic_baseline_cancel_24)
     val searchPainter = painterResource(id = R.drawable.ic_baseline_search_24)
 
     var searchValue by remember {
@@ -59,6 +60,20 @@ fun SearchTab(
         IconButton(onClick = { vm.searchStocks() }) {
             Icon(
                 painter = searchPainter,
+                contentDescription = null,
+                tint = finnhubGreen,
+                modifier = Modifier.size(
+                    50.dp
+                )
+            )
+        }
+        if (searchValue.isNotEmpty())
+        IconButton(onClick = {
+            vm.changeSearchValue("")
+            vm.refresh()
+        }) {
+            Icon(
+                painter = cancelPainter,
                 contentDescription = null,
                 tint = finnhubGreen,
                 modifier = Modifier.size(

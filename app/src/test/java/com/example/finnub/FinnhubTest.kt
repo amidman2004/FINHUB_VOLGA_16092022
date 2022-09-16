@@ -8,6 +8,7 @@ import com.example.finnub.data.api.models.StockSymbol
 import com.example.finnub.domain.ApiRepository
 import com.example.finnub.utils.Resourse
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -42,6 +43,20 @@ class FinnhubTest{
         assertEquals(true,isMarketOpen())
     }
 
-}
 
+    @Test
+    fun testTime(){
+        val to = System.currentTimeMillis() / 1000
+
+        val from = to - 31536000
+        println(from)
+        println(to)
+        assertEquals(from,to)
+    }
+
+
+}
+fun main(){
+
+}
 

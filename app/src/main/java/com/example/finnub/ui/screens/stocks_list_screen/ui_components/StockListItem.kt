@@ -1,6 +1,7 @@
 package com.example.finnub.ui.screens.stocks_list_screen.ui_components
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.example.finnub.data.api.models.SimpleStock
 import com.example.finnub.ui.screens.stocks_list_screen.StocksListViewModel
 import com.example.finnub.ui.theme.finnhubDarkBlue
@@ -24,6 +27,7 @@ import kotlinx.coroutines.delay
 fun StockListItem(
     simpleStock: SimpleStock,
     vm: StocksListViewModel,
+    stockList: LiveData<List<SimpleStock>>,
     index:Int
 ) {
 
@@ -33,7 +37,7 @@ fun StockListItem(
 
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    vm.pageStocksList.observe(lifecycleOwner){
+    stockList.observe(lifecycleOwner){
         try{
             val indexPrice = it[index].price
             if (indexPrice != 0.00)
@@ -59,6 +63,9 @@ fun StockListItem(
             .padding(5.dp)
             .clip(RoundedCornerShape(10))
             .border(1.dp, finnhubDarkBlue, RoundedCornerShape(10))
+            .clickable {
+                vm.setDialogValue(true,simpleStock)
+            }
 
     ) {
         Text(text = simpleStock.symbol,

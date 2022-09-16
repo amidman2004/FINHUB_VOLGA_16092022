@@ -25,6 +25,12 @@ class SaveStockRepositoryImpl @Inject constructor(
                 it[stockListName]
             }.first()?.toSimpleStockList() ?: mutableListOf()
 
+            val value = currentValue.find {
+                it.symbol == stock.symbol
+            }
+            if (value != null)
+                return
+
             currentValue.add(stock)
 
             val jsonList = currentValue.toJson()

@@ -1,9 +1,12 @@
 package com.example.finnub.ui.screens.stocks_list_screen.ui_components
 
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -41,6 +44,7 @@ fun StocksList(vm: StocksListViewModel) {
 
     val refreshState = rememberSwipeRefreshState(isRefreshing = loadingState == LoadingState.LoadingInProcess)
 
+    val scrollableState = rememberScrollState()
     Box(
         Modifier
         .fillMaxSize()
@@ -57,46 +61,54 @@ fun StocksList(vm: StocksListViewModel) {
                 )
             }
         ) {
-            LazyColumn(state = state, modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 80.dp)
-            ){
-                if (loadingState == LoadingState.LoadingInProcess)
-                    item {
-                        Box(
-                            Modifier
-                                .fillMaxWidth()
-                                .height(700.dp)) {
-                            CircularProgressIndicator(
-                                color = finnhubGreen,
-                                modifier = Modifier.align(Alignment.Center)
-                            )
-                        }
-                    }
-                else{
-                    if (stockList.isEmpty()){
-                        item { 
-                            Box(modifier = Modifier.fillMaxSize()){
-                                Text(
-                                    text = "Котировки не найдены",
-                                    modifier = Modifier.align(
-                                        Alignment.Center
-                                    )
+            Column() {
+                Text(text = "Избранное")
+                ListOfSavedStock(vm = vm)
+                Text(text = "Котировки Биржи")
+                LazyColumn(state = state, modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 80.dp)
+                ){
+                    if (loadingState == LoadingState.LoadingInProcess)
+                        item {
+                            Box(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(300.dp)) {
+                                CircularProgressIndicator(
+                                    color = finnhubGreen,
+                                    modifier = Modifier.align(Alignment.Center)
                                 )
                             }
                         }
-                    }else{
-                        itemsIndexed(stockList){ index: Int, simpleStock: SimpleStock ->
-                            StockListItem(
-                                simpleStock = simpleStock,
-                                vm = vm,
-                                index = index)
+                    else{
+                        if (stockList.isEmpty()){
+                            item {
+                                Box(modifier = Modifier.fillMaxSize()){
+                                    Text(
+                                        text = "Котировки не найдены",
+                                        modifier = Modifier.align(
+                                            Alignment.Center
+                                        )
+                                    )
+                                }
+                            }
+                        }else{
+                            itemsIndexed(stockList){ index: Int, simpleStock: SimpleStock ->
+                                StockListItem(
+                                    simpleStock = simpleStock,
+                                    vm = vm,
+                                    index = index,
+                                    stockList = vm.pageStocksList
+                                )
+                            }
                         }
+
                     }
-                    
+
                 }
-                    
             }
+
         }
 
 

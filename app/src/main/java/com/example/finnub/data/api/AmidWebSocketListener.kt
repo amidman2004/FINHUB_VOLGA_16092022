@@ -13,7 +13,8 @@ import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 class AmidWebSocketListener(
-    private val stockList:MutableLiveData<List<SimpleStock>>
+    private val stockList:MutableLiveData<List<SimpleStock>>,
+    private val savedStockList:MutableLiveData<List<SimpleStock>>
 ):WebSocketListener() {
 
     private suspend fun sendMessage(webSocket: WebSocket,symbol:String){
@@ -24,6 +25,11 @@ class AmidWebSocketListener(
     override fun onOpen(webSocket: WebSocket, response: Response) {
         CoroutineScope(Dispatchers.IO).launch{
                 stockList.value?.forEach {simpleStock->
+                    launch {
+                        sendMessage(webSocket = webSocket, symbol = simpleStock.symbol)
+                    }
+                }
+                savedStockList.value?.forEach {simpleStock->
                     launch {
                         sendMessage(webSocket = webSocket, symbol = simpleStock.symbol)
                     }
@@ -41,6 +47,10 @@ class AmidWebSocketListener(
             if (text == "{\"type\":\"ping\"}")
                 return@launch
             stockList.value?.let { list ->
+                val emitList = text.toSimpleStockList(list)
+                stockList.postValue(emitList)
+            }
+            savedStockList.value?.let { list ->
                 val emitList = text.toSimpleStockList(list)
                 stockList.postValue(emitList)
             }

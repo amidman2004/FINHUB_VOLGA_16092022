@@ -2,8 +2,10 @@ package com.example.finnub.data.api
 
 import com.example.finnub.data.api.ApiConstants.SEARCH_REQUEST
 import com.example.finnub.data.api.ApiConstants.STOCKS_LIST_URL
+import com.example.finnub.data.api.ApiConstants.STOCK_CANDLE
 import com.example.finnub.data.api.ApiConstants.STOCK_PRICE_URL
 import com.example.finnub.data.api.models.SearchResponse
+import com.example.finnub.data.api.models.StockCandles
 import com.example.finnub.data.api.models.StockPrice
 import com.example.finnub.data.api.models.StockSymbol
 import retrofit2.Response
@@ -29,6 +31,14 @@ interface ApiRequests {
     suspend fun searchStocks(
         @Query("q") symbol: String
     ):Response<SearchResponse>
+
+    @GET(STOCK_CANDLE)
+    suspend fun stockCandle(
+        @Query("symbol") symbol: String,
+        @Query("resolution") resolution:String,
+        @Query("from") from:Long,
+        @Query("to") to:Long,
+    ):Response<StockCandles>
 
 
 }
